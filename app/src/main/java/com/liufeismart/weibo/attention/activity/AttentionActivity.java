@@ -1,5 +1,6 @@
 package com.liufeismart.weibo.attention.activity;
 
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,8 +11,10 @@ import com.liufeismart.weibo.attention.adapter.AttentionListAdapter;
 import com.liufeismart.weibo.attention.model.AttentionModel;
 import com.liufeismart.weibo.attention.model.AttentionModelImpl;
 import com.liufeismart.weibo.attention.view.AttentionView;
+import com.liufeismart.weibo.attention.viewmodel.AttentionViewModel;
 import com.liufeismart.weibo.base.BaseActivity;
 import com.liufeismart.weibo.bean.WeiboBeanInWeibo;
+import com.liufeismart.weibo.databinding.ActivityAttentionBinding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,38 +27,29 @@ public class AttentionActivity extends BaseActivity implements AttentionView {
     private RecyclerView attentionList;
 
     private AttentionModel mAttentionModel;
+    private AttentionViewModel mAttentionViewModel;
+    private List<WeiboBeanInWeibo> dataList;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_attention);
-        attentionList = this.findViewById(R.id.rc_attention_list);
+        ActivityAttentionBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_attention);
+        mAttentionViewModel = new AttentionViewModel(this);
+        binding.setAttentionViewModel(mAttentionViewModel);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
-        attentionList.setLayoutManager(layoutManager);
-        attentionList.setAdapter(new AttentionListAdapter(new ArrayList<WeiboBeanInWeibo>()));
+        binding.rcAttentionList.setLayoutManager(layoutManager);
+        dataList = new ArrayList<WeiboBeanInWeibo>();
+        binding.rcAttentionList.setAdapter(new AttentionListAdapter(dataList));
 
-        //
-        showProgress();
-        mAttentionModel = new AttentionModelImpl();
-        mAttentionModel.loadData(new AttentionModel.Callback() {
-            @Override
-            public void onSuccess(List<WeiboBeanInWeibo> weiboList) {
-                AttentionActivity.this.hideProgress();
-                AttentionActivity.this.addData(weiboList);
-            }
-
-            @Override
-            public void onFailure(String reason) {
-                AttentionActivity.this.hideProgress();
-                AttentionActivity.this.showError(reason);
-
-            }
-        });
+        mAttentionViewModel.loadData();
     }
 
 
     @Override
     public void addData(List<WeiboBeanInWeibo> data) {
-
+        dataList.addAll(data);
     }
 
     @Override
